@@ -1,6 +1,5 @@
-package org.example;
+package org.example.hibernateconfig;
 
-import org.example.entity.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 

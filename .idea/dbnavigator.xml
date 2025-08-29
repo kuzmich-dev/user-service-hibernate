@@ -6,7 +6,7 @@
   </component>
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DatabaseAssistantManager">
@@ -24,7 +24,7 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="44ce75de-1cbf-4677-b252-cf34a3566c79">
-      <console name="Connection" type="STANDARD" schema="postgres" session="Main"><![CDATA[select 1;]]></console>
+      <console name="Connection" type="STANDARD" schema="postgres" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
@@ -33,10 +33,18 @@
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files>
       <object connection-id="44ce75de-1cbf-4677-b252-cf34a3566c79" object-ref="consoles/Connection" />
+      <object connection-id="44ce75de-1cbf-4677-b252-cf34a3566c79" object-ref="schemas/public/tables/users" />
     </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="44ce75de-1cbf-4677-b252-cf34a3566c79" />
+  </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="44ce75de-1cbf-4677-b252-cf34a3566c79" dataset="public.users" active-filter-id="6474c35a-1919-49b9-8e81-9602c6bd3915">
+      <filter id="6474c35a-1919-49b9-8e81-9602c6bd3915" name="Filter" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="id" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
   </component>
   <component name="DBNavigator.Project.ExecutionManager">
     <retain-sticky-names value="false" />
