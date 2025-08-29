@@ -100,4 +100,5 @@ public class UserDAO {
             throw new RuntimeException("Ошибка при получении списка пользователей", e);
         }
     }
+
 }

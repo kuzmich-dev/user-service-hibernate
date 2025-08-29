@@ -123,4 +123,5 @@ public class ConsoleApp {
             System.out.println("Ошибка при выводе списка пользователей.");
         }
     }
+
 }
