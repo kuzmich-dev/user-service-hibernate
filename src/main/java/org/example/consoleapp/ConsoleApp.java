@@ -3,6 +3,7 @@ package org.example.consoleapp;
 import org.example.entity.User;
 import org.example.service.UserService;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class ConsoleApp {
@@ -22,6 +23,7 @@ public class ConsoleApp {
                 case "read" -> handleRead();
                 case "update" -> handleUpdate();
                 case "delete" -> handleDelete();
+                case "list" -> handleList();
                 case "exit" -> {
                     System.out.println("Завершение работы.");
                     return;
@@ -100,6 +102,25 @@ public class ConsoleApp {
             System.out.println("Пользователь удалён.");
         } catch (Exception e) {
             System.out.println("Ошибка при удалении.");
+        }
+    }
+
+    private void handleList() {
+        try {
+            List<User> users = userService.getAllUsers();
+            if (users.isEmpty()) {
+                System.out.println("Нет пользователей.");
+                return;
+            }
+
+            System.out.printf("%-5s %-20s %-30s %-5s%n", "ID", "Имя", "Email", "Возраст");
+            System.out.println("---------------------------------------------------------------");
+            for (User user : users) {
+                System.out.printf("%-5d %-20s %-30s %-5d%n",
+                        user.getId(), user.getName(), user.getEmail(), user.getAge());
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка при выводе списка пользователей.");
         }
     }
 }
