@@ -15,7 +15,7 @@ public class ConsoleApp {
         System.out.println("Добро пожаловать в user-service!");
 
         while (true) {
-            System.out.println("\nВведите команду: create, read, update, delete, exit");
+            System.out.println("\nВведите команду: create, read, update, delete, list, exit");
             String command = scanner.nextLine().trim().toLowerCase();
 
             switch (command) {
