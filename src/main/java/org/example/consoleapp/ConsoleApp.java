@@ -61,7 +61,7 @@ public class ConsoleApp {
             User user = userService.getUserById(id);
             if (user != null) {
                 System.out.println("Найден пользователь:");
-                System.out.println(user);
+                System.out.println(user.getName());
             } else {
                 System.out.println("Пользователь не найден.");
             }
@@ -113,11 +113,11 @@ public class ConsoleApp {
                 return;
             }
 
-            System.out.printf("%-5s %-20s %-30s %-5s%n", "ID", "Имя", "Email", "Возраст");
+            System.out.printf("%-5s %-20s", "ID", "Имя");
             System.out.println("---------------------------------------------------------------");
             for (User user : users) {
-                System.out.printf("%-5d %-20s %-30s %-5d%n",
-                        user.getId(), user.getName(), user.getEmail(), user.getAge());
+                System.out.printf("%-5d %-20s %n",
+                        user.getId(), user.getName());
             }
         } catch (Exception e) {
             System.out.println("Ошибка при выводе списка пользователей.");
