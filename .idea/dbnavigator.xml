@@ -33,6 +33,7 @@
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files>
       <object connection-id="44ce75de-1cbf-4677-b252-cf34a3566c79" object-ref="consoles/Connection" />
+      <object connection-id="44ce75de-1cbf-4677-b252-cf34a3566c79" object-ref="schemas/public/tables/users" />
     </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
@@ -67,7 +68,7 @@
           <url-type value="DATABASE" />
           <host value="localhost" />
           <port value="5432" />
-          <database value="postgresdb" />
+          <database value="postgres" />
           <tns-folder value="" />
           <tns-profile value="" />
           <server-type value="" />
