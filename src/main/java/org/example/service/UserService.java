@@ -10,7 +10,11 @@ import java.util.List;
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO;
+
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     public void createUser(User user) {
         try {

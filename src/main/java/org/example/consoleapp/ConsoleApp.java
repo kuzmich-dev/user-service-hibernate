@@ -1,5 +1,6 @@
 package org.example.consoleapp;
 
+import org.example.dao.UserDAO;
 import org.example.entity.User;
 import org.example.service.UserService;
 
@@ -8,8 +9,12 @@ import java.util.Scanner;
 
 public class ConsoleApp {
 
-    private final UserService userService = new UserService();
+    private final UserService userService;
     private final Scanner scanner = new Scanner(System.in);
+
+    public ConsoleApp(UserService userService) {
+        this.userService = userService;
+    }
 
     public void run() {
         System.out.println("Добро пожаловать в user-service!");

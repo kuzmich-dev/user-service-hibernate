@@ -2,7 +2,6 @@ package org.example.dao;
 
 import org.example.entity.User;
 import org.example.hibernateconfig.HibernateConfiguration;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
