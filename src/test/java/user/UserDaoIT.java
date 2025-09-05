@@ -25,7 +25,6 @@ public class UserDaoIT {
     @BeforeAll
     void startContainer() {
         postgres.start();
-
         sessionFactory = HibernateConfiguration.buildSessionFactory(
                 postgres.getJdbcUrl(),
                 postgres.getUsername(),
