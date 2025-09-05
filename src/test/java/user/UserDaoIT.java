@@ -39,7 +39,7 @@ public class UserDaoIT {
 
     @BeforeEach
     void setup() {
-        userDAO = new UserDAO();
+        userDAO = new UserDAO(sessionFactory);
     }
 
     @Test

@@ -16,7 +16,7 @@ public class ServiceTest {
 
     @BeforeEach
     void setUp() {
-        userDAO = mock(UserDAO.class);  // создаём мок
+        userDAO = mock(UserDAO.class);
         userService = new UserService(userDAO);
     }
 
@@ -28,7 +28,7 @@ public class ServiceTest {
 
         userService.createUser(user);
 
-        verify(userDAO, times(1)).create(user); // проверяем, что вызвался метод create
+        verify(userDAO, times(1)).create(user);
     }
 
     @Test
@@ -51,4 +51,5 @@ public class ServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.getUserById(1L));
         assertEquals("Не удалось получить пользователя", ex.getMessage());
     }
+
 }
