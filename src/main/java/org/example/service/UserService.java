@@ -10,14 +10,19 @@ import java.util.List;
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO;
+
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     public void createUser(User user) {
         try {
             userDAO.create(user);
-            log.info("Пользователь создан: {}", user);
-        } catch (RuntimeException e) {
-            log.error("Ошибка при создании пользователя", e);
+            log.info("Пользователь успешно создан: {}", user.getName());
+        } catch (Exception e) {
+            log.error("Ошибка при создании пользователя: {}", user.getName(), e);
+            throw new RuntimeException("Не удалось создать пользователя", e);
         }
     }
 
@@ -26,13 +31,13 @@ public class UserService {
             User user = userDAO.read(id);
             if (user == null) {
                 log.warn("Пользователь с ID {} не найден", id);
-            } else {
-                log.info("Пользователь найден: {}", user);
+                throw new RuntimeException("Пользователь не найден");
             }
+            log.info("Пользователь найден: {}", user.getName());
             return user;
-        } catch (RuntimeException e) {
-            log.error("Ошибка при получении пользователя", e);
-            return null;
+        } catch (Exception e) {
+            log.error("Ошибка при получении пользователя с ID {}", id, e);
+            throw new RuntimeException("Не удалось получить пользователя", e);
         }
     }
 
@@ -40,17 +45,24 @@ public class UserService {
         try {
             userDAO.update(user);
             log.info("Пользователь обновлён: {}", user);
-        } catch (RuntimeException e) {
-            log.error("Ошибка при обновлении пользователя", e);
+        } catch (Exception e) {
+            log.error("Ошибка при обновлении пользователя: {}", user.getName(), e);
+            throw new RuntimeException("Не удалось обновить пользователя", e);
         }
     }
 
     public void deleteUser(Long id) {
         try {
+            User user = userDAO.read(id);
+            if (user == null) {
+                log.warn("Пользователь с ID {} не найден для удаления", id);
+                throw new RuntimeException("Пользователь не найден");
+            }
             userDAO.delete(id);
-            log.info("Пользователь с ID {} удалён", id);
-        } catch (RuntimeException e) {
-            log.error("Ошибка при удалении пользователя", e);
+            log.info("Пользователь с ID {} успешно удалён", id);
+        } catch (Exception e) {
+            log.error("Ошибка при удалении пользователя с ID {}", id, e);
+            throw new RuntimeException("Не удалось удалить пользователя", e);
         }
     }
 
@@ -59,9 +71,9 @@ public class UserService {
             List<User> users = userDAO.findAll();
             log.info("Получено {} пользователей", users.size());
             return users;
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             log.error("Ошибка при получении списка пользователей", e);
-            return List.of();
+            throw new RuntimeException("Не удалось получить список пользователей", e);
         }
     }
 
