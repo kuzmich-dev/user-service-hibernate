@@ -2,7 +2,6 @@ package user;
 
 import org.example.dao.UserDAO;
 import org.example.entity.User;
-import org.example.hibernateconfig.HibernateConfiguration;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
