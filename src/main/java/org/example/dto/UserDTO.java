@@ -36,4 +36,5 @@ public class UserDTO {
                 ", name='" + name + '\'' +
                 '}';
     }
+
 }

@@ -1,12 +1,17 @@
 package org.example.service;
 
+import org.example.dto.UserCreateUpdateDTO;
+import org.example.dto.UserDTO;
 import org.example.entity.User;
+import org.example.exceptions.ResourceNotFoundException;
+import org.example.mapper.UserMapper;
 import org.example.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -19,52 +24,36 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) {
+
+    public List<UserDTO> getAll() {
+        return userRepository.findAll().stream().map(UserMapper::toDto).collect(Collectors.toList());
+    }
+
+    public UserDTO getById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("User not found with id: " + id));
+        return UserMapper.toDto(user);
+    }
+
+    public UserDTO create(UserCreateUpdateDTO userCreateUpdateDTO) {
+        User user = UserMapper.fromDtoToCreate(userCreateUpdateDTO);
         User saved = userRepository.save(user);
-        log.info("Пользователь успешно создан: {}", saved.getName());
-        return saved;
+        return UserMapper.toDto(saved);
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    log.info("Пользователь найден: {}", user.getName());
-                    return user;
-                })
-                .orElseThrow(() -> {
-                    log.warn("Пользователь с ID {} не найден", id);
-                    return new RuntimeException("Пользователь не найден");
-                });
+    public UserDTO update(Long id, UserCreateUpdateDTO userCreateUpdateDTO) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("User not found with id: " + id));
+        UserMapper.fromDtoToUpdate(userCreateUpdateDTO, user);
+        User updated = userRepository.save(user);
+        return UserMapper.toDto(updated);
     }
 
-    public User updateUser(Long id, User userDetails) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setName(userDetails.getName());
-                    user.setEmail(userDetails.getEmail());
-                    User updated = userRepository.save(user);
-                    log.info("Пользователь обновлён: {}", updated);
-                    return updated;
-                })
-                .orElseThrow(() -> {
-                    log.warn("Пользователь с ID {} не найден для обновления", id);
-                    return new RuntimeException("Пользователь не найден");
-                });
-    }
-
-    public void deleteUser(Long id) {
+    public void delete(Long id) {
         if (!userRepository.existsById(id)) {
-            log.warn("Пользователь с ID {} не найден для удаления", id);
-            throw new RuntimeException("Пользователь не найден");
+            throw new ResourceNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
-        log.info("Пользователь с ID {} успешно удалён", id);
-    }
-
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        log.info("Получено {} пользователей", users.size());
-        return users;
     }
 
 }
