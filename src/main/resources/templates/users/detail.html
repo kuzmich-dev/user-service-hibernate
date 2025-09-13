@@ -1,0 +1,19 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль пользователя</title>
+</head>
+<body>
+<h1 th:text="${user.name}">Имя</h1>
+<p>Email: <span th:text="${user.email}">email</span></p>
+
+<a th:href="@{/users/{id}/edit(id=${user.id})}">Редактировать</a>
+
+<form th:action="@{/users/{id}/delete(id=${user.id})}" method="post" style="display:inline;">
+    <button type="submit">Удалить</button>
+</form>
+
+<br><br>
+<a href="/templates/users">Назад к списку</a>
+</body>
+</html>
