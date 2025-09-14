@@ -25,6 +25,16 @@ public class User {
         createdAt = LocalDateTime.now();
     }
 
+    public User() {
+    }
+
+    public User(Long id, String name, String email, Integer age) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.age = age;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
