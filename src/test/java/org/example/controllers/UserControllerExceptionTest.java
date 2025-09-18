@@ -53,4 +53,5 @@ class UserControllerExceptionTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.message").value("Internal error"));
     }
+
 }
