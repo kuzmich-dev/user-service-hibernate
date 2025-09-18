@@ -1,80 +1,59 @@
 package org.example.service;
 
-import org.example.dao.UserDAO;
+import org.example.dto.UserCreateUpdateDTO;
+import org.example.dto.UserDTO;
 import org.example.entity.User;
+import org.example.exceptions.ResourceNotFoundException;
+import org.example.mapper.UserMapper;
+import org.example.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Service
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final UserDAO userDAO;
 
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public void createUser(User user) {
-        try {
-            userDAO.create(user);
-            log.info("Пользователь успешно создан: {}", user.getName());
-        } catch (Exception e) {
-            log.error("Ошибка при создании пользователя: {}", user.getName(), e);
-            throw new RuntimeException("Не удалось создать пользователя", e);
-        }
+
+    public List<UserDTO> getAll() {
+        return userRepository.findAll().stream().map(UserMapper::toDto).collect(Collectors.toList());
     }
 
-    public User getUserById(Long id) {
-        try {
-            User user = userDAO.read(id);
-            if (user == null) {
-                log.warn("Пользователь с ID {} не найден", id);
-                throw new RuntimeException("Пользователь не найден");
-            }
-            log.info("Пользователь найден: {}", user.getName());
-            return user;
-        } catch (Exception e) {
-            log.error("Ошибка при получении пользователя с ID {}", id, e);
-            throw new RuntimeException("Не удалось получить пользователя", e);
-        }
+    public UserDTO getById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("User not found with id: " + id));
+        return UserMapper.toDto(user);
     }
 
-    public void updateUser(User user) {
-        try {
-            userDAO.update(user);
-            log.info("Пользователь обновлён: {}", user);
-        } catch (Exception e) {
-            log.error("Ошибка при обновлении пользователя: {}", user.getName(), e);
-            throw new RuntimeException("Не удалось обновить пользователя", e);
-        }
+    public UserDTO create(UserCreateUpdateDTO userCreateUpdateDTO) {
+        User user = UserMapper.fromDtoToCreate(userCreateUpdateDTO);
+        User saved = userRepository.save(user);
+        return UserMapper.toDto(saved);
     }
 
-    public void deleteUser(Long id) {
-        try {
-            User user = userDAO.read(id);
-            if (user == null) {
-                log.warn("Пользователь с ID {} не найден для удаления", id);
-                throw new RuntimeException("Пользователь не найден");
-            }
-            userDAO.delete(id);
-            log.info("Пользователь с ID {} успешно удалён", id);
-        } catch (Exception e) {
-            log.error("Ошибка при удалении пользователя с ID {}", id, e);
-            throw new RuntimeException("Не удалось удалить пользователя", e);
-        }
+    public UserDTO update(Long id, UserCreateUpdateDTO userCreateUpdateDTO) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("User not found with id: " + id));
+        UserMapper.fromDtoToUpdate(userCreateUpdateDTO, user);
+        User updated = userRepository.save(user);
+        return UserMapper.toDto(updated);
     }
 
-    public List<User> getAllUsers() {
-        try {
-            List<User> users = userDAO.findAll();
-            log.info("Получено {} пользователей", users.size());
-            return users;
-        } catch (Exception e) {
-            log.error("Ошибка при получении списка пользователей", e);
-            throw new RuntimeException("Не удалось получить список пользователей", e);
+    public void delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User not found with id: " + id);
         }
+        userRepository.deleteById(id);
     }
 
 }
