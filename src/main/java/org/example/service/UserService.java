@@ -49,11 +49,17 @@ public class UserService {
         return UserMapper.toDto(updated);
     }
 
-    public void delete(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found with id: " + id);
-        }
+    public UserCreateUpdateDTO delete(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
         userRepository.deleteById(id);
+
+        return new UserCreateUpdateDTO(
+                user.getName(),
+                user.getEmail(),
+                user.getAge()
+        );
     }
 
 }

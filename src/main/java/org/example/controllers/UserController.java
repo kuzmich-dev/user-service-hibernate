@@ -3,6 +3,8 @@ package org.example.controllers;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
+import org.example.dto.UserEventDTO;
+import org.example.service.KafkaProducerService;
 import org.example.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final KafkaProducerService kafkaProducerService;
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> listUsers() {
@@ -32,6 +35,8 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDTO> create(@RequestBody UserCreateUpdateDTO dto) {
         UserDTO created = userService.create(dto);
+        UserEventDTO event = new UserEventDTO(dto.getEmail(), "CREATE");
+        kafkaProducerService.sendUserEvent(event);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -44,7 +49,12 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.delete(id);
+        UserCreateUpdateDTO deletedUserDto = userService.delete(id);
+
+        UserEventDTO event = new UserEventDTO(deletedUserDto.getEmail(), "DELETE");
+        kafkaProducerService.sendUserEvent(event);
+
         return ResponseEntity.noContent().build();
     }
+
 }
