@@ -1,9 +1,9 @@
 package org.example.controllers;
 
+import com.example.core.dto.UserEventDTO;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
-import org.example.dto.UserEventDTO;
 import org.example.service.KafkaProducerService;
 import org.example.service.UserService;
 import org.springframework.http.HttpStatus;
