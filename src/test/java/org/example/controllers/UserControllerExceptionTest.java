@@ -1,18 +1,22 @@
 package org.example.controllers;
 
+import org.example.assembler.UserModelAssembler;
 import org.example.exceptions.ResourceNotFoundException;
+import org.example.service.KafkaProducerService;
 import org.example.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
+@Import(org.example.exceptions.GlobalExceptionHandler.class)
 class UserControllerExceptionTest {
 
     @Autowired
@@ -21,12 +25,18 @@ class UserControllerExceptionTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private KafkaProducerService kafkaProducerService;
+
+    @MockitoBean
+    private UserModelAssembler assembler;
+
     @Test
     void testUserNotFound() throws Exception {
         Mockito.when(userService.getById(99L))
                 .thenThrow(new ResourceNotFoundException("User with ID 99 not found"));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/users/99"))
+        mockMvc.perform(get("/api/users/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("User with ID 99 not found"));
@@ -36,8 +46,7 @@ class UserControllerExceptionTest {
     void testIllegalArgumentException() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("Invalid input"))
                 .when(userService).delete(123L);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/users/123/delete"))
+        mockMvc.perform(delete("/api/users/123"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Invalid input"));
@@ -47,8 +56,7 @@ class UserControllerExceptionTest {
     void testUnhandledException() throws Exception {
         Mockito.when(userService.getById(1L))
                 .thenThrow(new RuntimeException("Unexpected error"));
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/users/1"))
+        mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.message").value("Internal error"));

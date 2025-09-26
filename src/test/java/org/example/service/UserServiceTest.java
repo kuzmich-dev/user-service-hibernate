@@ -75,14 +75,21 @@ class UserServiceTest {
 
     @Test
     void testDeleteUser() {
-        when(userRepository.existsById(4L)).thenReturn(true);
+        User user = new User();
+        user.setId(4L);
+        user.setName("Test");
+        user.setEmail("test@example.com");
+        user.setAge(30);
+
+        when(userRepository.findById(4L)).thenReturn(Optional.of(user));
+
         assertDoesNotThrow(() -> userService.delete(4L));
         verify(userRepository).deleteById(4L);
     }
 
     @Test
     void testDeleteUserNotFound() {
-        when(userRepository.existsById(404L)).thenReturn(false);
+        when(userRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> userService.delete(404L));
     }
