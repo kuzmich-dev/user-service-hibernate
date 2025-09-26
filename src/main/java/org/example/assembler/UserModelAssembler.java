@@ -20,7 +20,4 @@ public class UserModelAssembler implements RepresentationModelAssembler<UserDTO,
         );
     }
 
-
-
-
 }
