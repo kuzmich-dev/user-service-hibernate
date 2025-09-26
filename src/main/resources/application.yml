@@ -1,4 +1,6 @@
 spring:
+  hateoas:
+    use-hal-as-default-json-media-type: true
   jmx:
     enabled: false
   datasource:

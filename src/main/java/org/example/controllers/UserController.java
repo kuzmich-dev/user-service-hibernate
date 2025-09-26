@@ -2,15 +2,20 @@ package org.example.controllers;
 
 import com.example.core.dto.UserEventDTO;
 import lombok.RequiredArgsConstructor;
+import org.example.assembler.UserModelAssembler;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
 import org.example.service.KafkaProducerService;
 import org.example.service.UserService;
-import org.springframework.http.HttpStatus;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,25 +24,40 @@ public class UserController {
 
     private final UserService userService;
     private final KafkaProducerService kafkaProducerService;
+    private final UserModelAssembler assembler;
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> listUsers() {
+    public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> listUsers() {
         List<UserDTO> users = userService.getAll();
-        return ResponseEntity.ok(users);
+
+        List<EntityModel<UserDTO>> userModels = users.stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(
+                userModels,
+                linkTo(methodOn(UserController.class).listUsers()).withSelfRel()
+        );
+
+        return ResponseEntity.ok(collectionModel);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<UserDTO>> getUser(@PathVariable Long id) {
         UserDTO user = userService.getById(id);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(assembler.toModel(user));
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> create(@RequestBody UserCreateUpdateDTO dto) {
+    public ResponseEntity<EntityModel<UserDTO>> create(@RequestBody UserCreateUpdateDTO dto) {
         UserDTO created = userService.create(dto);
-        UserEventDTO event = new UserEventDTO(dto.getEmail(), "CREATE");
-        kafkaProducerService.sendUserEvent(event);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        kafkaProducerService.sendUserEvent(new UserEventDTO(dto.getEmail(), "CREATE"));
+
+        EntityModel<UserDTO> model = assembler.toModel(created);
+
+        return ResponseEntity
+                .created(linkTo(methodOn(UserController.class).getUser(created.getId())).toUri())
+                .body(model);
     }
 
     @PutMapping("/{id}")
@@ -49,11 +69,8 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        UserCreateUpdateDTO deletedUserDto = userService.delete(id);
-
-        UserEventDTO event = new UserEventDTO(deletedUserDto.getEmail(), "DELETE");
-        kafkaProducerService.sendUserEvent(event);
-
+        UserCreateUpdateDTO deletedUser = userService.delete(id);
+        kafkaProducerService.sendUserEvent(new UserEventDTO(deletedUser.getEmail(), "DELETE"));
         return ResponseEntity.noContent().build();
     }
 
