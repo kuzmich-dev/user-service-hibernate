@@ -2,7 +2,7 @@ package org.example.controllers;
 
 import org.example.assembler.UserModelAssembler;
 import org.example.exceptions.ResourceNotFoundException;
-import org.example.service.KafkaProducerService;
+import org.example.service.KafkaNotificationService;
 import org.example.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,7 +26,7 @@ class UserControllerExceptionTest {
     private UserService userService;
 
     @MockitoBean
-    private KafkaProducerService kafkaProducerService;
+    private KafkaNotificationService kafkaNotificationService;
 
     @MockitoBean
     private UserModelAssembler assembler;
@@ -46,6 +46,7 @@ class UserControllerExceptionTest {
     void testIllegalArgumentException() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("Invalid input"))
                 .when(userService).delete(123L);
+
         mockMvc.perform(delete("/api/users/123"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
@@ -56,6 +57,7 @@ class UserControllerExceptionTest {
     void testUnhandledException() throws Exception {
         Mockito.when(userService.getById(1L))
                 .thenThrow(new RuntimeException("Unexpected error"));
+
         mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))

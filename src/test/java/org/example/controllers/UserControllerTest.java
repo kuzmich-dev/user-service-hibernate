@@ -3,7 +3,7 @@ package org.example.controllers;
 import org.example.assembler.UserModelAssembler;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
-import org.example.service.KafkaProducerService;
+import org.example.service.KafkaNotificationService;
 import org.example.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,7 +31,7 @@ class UserControllerTest {
     private UserService userService;
 
     @MockitoBean
-    private KafkaProducerService kafkaProducerService;
+    private KafkaNotificationService kafkaNotificationService;
 
     @MockitoBean
     private UserModelAssembler assembler;
@@ -47,6 +47,7 @@ class UserControllerTest {
                 .thenReturn(org.springframework.hateoas.EntityModel.of(users.get(0)));
         when(assembler.toModel(users.get(1)))
                 .thenReturn(org.springframework.hateoas.EntityModel.of(users.get(1)));
+
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.users[0].id").value(1))
@@ -61,6 +62,7 @@ class UserControllerTest {
         when(userService.getById(2L)).thenReturn(user);
         when(assembler.toModel(user))
                 .thenReturn(org.springframework.hateoas.EntityModel.of(user));
+
         mockMvc.perform(get("/api/users/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(2))
@@ -73,6 +75,7 @@ class UserControllerTest {
         when(userService.create(Mockito.any(UserCreateUpdateDTO.class))).thenReturn(createdUser);
         when(assembler.toModel(createdUser))
                 .thenReturn(org.springframework.hateoas.EntityModel.of(createdUser));
+
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"NewUser\",\"email\":\"new@example.com\",\"age\":25}"))
@@ -80,6 +83,8 @@ class UserControllerTest {
                 .andExpect(header().string("Location", "http://localhost/api/users/3"))
                 .andExpect(jsonPath("id").value(3))
                 .andExpect(jsonPath("name").value("NewUser"));
+
+        Mockito.verify(kafkaNotificationService).notifyUserCreated(Mockito.any(UserCreateUpdateDTO.class));
     }
 
     @Test
@@ -88,16 +93,21 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"UpdatedName\",\"email\":\"updated@example.com\",\"age\":30}"))
                 .andExpect(status().isNoContent());
+
         Mockito.verify(userService).update(Mockito.eq(2L), Mockito.any(UserCreateUpdateDTO.class));
+        Mockito.verify(kafkaNotificationService).notifyUserUpdated(Mockito.eq(2L), Mockito.any(UserCreateUpdateDTO.class));
     }
 
     @Test
     void testDeleteUser() throws Exception {
         UserCreateUpdateDTO deletedUser = new UserCreateUpdateDTO("Deleted", "deleted@example.com", 40);
         when(userService.delete(2L)).thenReturn(deletedUser);
+
         mockMvc.perform(delete("/api/users/2"))
                 .andExpect(status().isNoContent());
+
         Mockito.verify(userService).delete(2L);
+        Mockito.verify(kafkaNotificationService).notifyUserDeleted(deletedUser);
     }
 
 }

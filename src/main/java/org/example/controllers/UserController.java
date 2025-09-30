@@ -1,11 +1,10 @@
 package org.example.controllers;
 
-import com.example.core.dto.UserEventDTO;
 import lombok.RequiredArgsConstructor;
 import org.example.assembler.UserModelAssembler;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
-import org.example.service.KafkaProducerService;
+import org.example.service.KafkaNotificationService;
 import org.example.service.UserService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -23,7 +22,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 public class UserController {
 
     private final UserService userService;
-    private final KafkaProducerService kafkaProducerService;
+    private final KafkaNotificationService kafkaNotificationService;
     private final UserModelAssembler assembler;
 
     @GetMapping
@@ -49,12 +48,10 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<EntityModel<UserDTO>> create(@RequestBody UserCreateUpdateDTO dto) {
-        UserDTO created = userService.create(dto);
-        kafkaProducerService.sendUserEvent(new UserEventDTO(dto.getEmail(), "CREATE"));
-
+    public ResponseEntity<EntityModel<UserDTO>> create(@RequestBody UserCreateUpdateDTO userCreateUpdateDTO) {
+        UserDTO created = userService.create(userCreateUpdateDTO);
+        kafkaNotificationService.notifyUserCreated(userCreateUpdateDTO);
         EntityModel<UserDTO> model = assembler.toModel(created);
-
         return ResponseEntity
                 .created(linkTo(methodOn(UserController.class).getUser(created.getId())).toUri())
                 .body(model);
@@ -64,13 +61,14 @@ public class UserController {
     public ResponseEntity<Void> update(@PathVariable Long id,
                                        @RequestBody UserCreateUpdateDTO dto) {
         userService.update(id, dto);
+        kafkaNotificationService.notifyUserUpdated(id, dto);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        UserCreateUpdateDTO deletedUser = userService.delete(id);
-        kafkaProducerService.sendUserEvent(new UserEventDTO(deletedUser.getEmail(), "DELETE"));
+        var deletedUser = userService.delete(id);
+        kafkaNotificationService.notifyUserDeleted(deletedUser);
         return ResponseEntity.noContent().build();
     }
 
