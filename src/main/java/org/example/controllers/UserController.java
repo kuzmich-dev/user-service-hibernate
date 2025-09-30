@@ -1,71 +1,60 @@
 package org.example.controllers;
 
+import com.example.core.dto.UserEventDTO;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.UserCreateUpdateDTO;
 import org.example.dto.UserDTO;
+import org.example.service.KafkaProducerService;
 import org.example.service.UserService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
-@RequestMapping("/users")
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final KafkaProducerService kafkaProducerService;
 
     @GetMapping
-    public String listUsers(Model model) {
-        model.addAttribute("users", userService.getAll());
-        return "users/list";
+    public ResponseEntity<List<UserDTO>> listUsers() {
+        List<UserDTO> users = userService.getAll();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
-    public String getUser(@PathVariable Long id, Model model) {
+    public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
         UserDTO user = userService.getById(id);
-        model.addAttribute("user", user);
-        return "users/detail";
-    }
-
-    @GetMapping("/create")
-    public String createForm(Model model) {
-        model.addAttribute("userForm", new UserCreateUpdateDTO());
-        return "users/create";
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping
-    public String create(@Validated @ModelAttribute("userForm") UserCreateUpdateDTO dto,
-                         RedirectAttributes redirectAttributes) {
+    public ResponseEntity<UserDTO> create(@RequestBody UserCreateUpdateDTO dto) {
         UserDTO created = userService.create(dto);
-        redirectAttributes.addFlashAttribute("message", "Пользователь создан!");
-        return "redirect:/users/" + created.getId();
+        UserEventDTO event = new UserEventDTO(dto.getEmail(), "CREATE");
+        kafkaProducerService.sendUserEvent(event);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
-        // Просто передаём пустой объект формы
-        model.addAttribute("userForm", new UserCreateUpdateDTO());
-        model.addAttribute("id", id);
-        return "users/edit";
-    }
-
-    @PostMapping("/{id}")
-    public String update(@PathVariable Long id,
-                         @Validated @ModelAttribute("userForm") UserCreateUpdateDTO dto,
-                         RedirectAttributes redirectAttributes) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> update(@PathVariable Long id,
+                                       @RequestBody UserCreateUpdateDTO dto) {
         userService.update(id, dto);
-        redirectAttributes.addFlashAttribute("message", "Пользователь обновлён!");
-        return "redirect:/users/" + id;
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        userService.delete(id);
-        redirectAttributes.addFlashAttribute("message", "Пользователь удалён!");
-        return "redirect:/users";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        UserCreateUpdateDTO deletedUserDto = userService.delete(id);
+
+        UserEventDTO event = new UserEventDTO(deletedUserDto.getEmail(), "DELETE");
+        kafkaProducerService.sendUserEvent(event);
+
+        return ResponseEntity.noContent().build();
     }
 
 }
