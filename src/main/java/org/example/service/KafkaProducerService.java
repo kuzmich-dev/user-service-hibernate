@@ -12,7 +12,6 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, UserEventDTO> kafkaTemplate;
 
     public void sendUserEvent(UserEventDTO userEventDTO) {
-        System.out.println("Отправка события: " + userEventDTO);
         kafkaTemplate.send("user-events", userEventDTO);
     }
 
